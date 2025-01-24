@@ -19,7 +19,7 @@ import { venteRouter } from './routes/fastfood/vente.js';
 dotenv.config(); // Chargement des variables d'environnement
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3006;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,10 +54,11 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 /*app.get('/test-path', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'Reunions', 'fichier_1736731706743.pdf'));
 });
+*/
 
 app.get('/', (req, res) =>{
   res.send('transactionRouter');
-})*/
+})
 
 // Synchronisation avec la base de données
 sequelize
