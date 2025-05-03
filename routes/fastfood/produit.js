@@ -4,9 +4,10 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { Produit } from '../../models/index.js';
+import { Mouvementstock, Produit } from '../../models/index.js';
 import sequelize from '../../config/database.js';
 import { getProduit } from '../../services/produitService.js';
+import { Op, Sequelize } from 'sequelize';
 
 const router = express.Router();
 
@@ -36,38 +37,45 @@ const storage = multer.diskStorage({
   });
 
 router.post('/nouveau', upload.single('image'), async (req, res) => {
-    let { categorie_id, designation, unite, contenu, userid } = req.body;
+    let { designation, unite, seuil, stock_bloquant, puisable_en_portion, contenance, userid } = req.body;
     try {
-        if (!categorie_id) {
-            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner la catégorie !' });
-        }
         if (!designation) {
             return res.status(400).json({ Status: false, message: 'Veuillez saisir la désignation !' });
         }
         if (!unite) {
             return res.status(400).json({ Status: false, message: 'Veuillez sélectionner l\'unité !' });
         }
-        if (!contenu) {
-            return res.status(400).json({ Status: false, message: 'Veuillez saisir la quantité contenue' });
+        if (!seuil) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir le stock minimal d\'alert !' });
         }
+        if (!stock_bloquant) {
+            return res.status(400).json({ Status: false, message: 'Veuillez préciser si le stock est bloquant !' });
+        }
+        if (!puisable_en_portion) {
+            return res.status(400).json({ Status: false, message: 'Veuillez préciser si le produit est puisable en portion !' });
+        }
+        if (puisable_en_portion =="Oui") {
+            if (!contenance) {
+                return res.status(400).json({ Status: false, message: 'Veuillez saisir la contenance en portion !' });
+            }
+        }
+       
         if (!userid) {
             return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
         }
-        /*if (!req.file) {
-            return res.status(400).json({ Status: false, message: 'Veuillez définir l\'image du produit.' });
-        }*/
-
-        const existingProduit = await getProduit(categorie_id, designation);
+        
+        const existingProduit = await getProduit(designation);
         if (existingProduit) {
             return res.status(400).json({ Status: false, message: "Ce produit existe déjà !" });
         }
 
         const produit = await Produit.create({
-            categorie_id : categorie_id,
             designation : designation,
-            unite_id : unite,
-            contenu : contenu,
-            //image: req.file.filename,
+            unite : unite,
+            seuil : seuil,
+            stock_bloquant: stock_bloquant,
+            puisable_en_portion: puisable_en_portion,
+            contenance: contenance,
             userid,
         });
 
@@ -78,6 +86,66 @@ router.post('/nouveau', upload.single('image'), async (req, res) => {
     }
 });
 
+//MODIFICATION
+
+router.put('/modifier/:id', upload.single('image'), async (req, res) => {
+    const { id } = req.params;
+    const { designation, unite, seuil, stock_bloquant, puisable_en_portion, contenance, userid } = req.body;
+    console.log(req.body)
+    try { 
+        // Validations similaires à la création
+        if (!designation) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir la désignation !' });
+        }
+        if (!unite) {
+            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner l\'unité !' });
+        }
+        if (!seuil) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir le stock minimal d\'alert !' });
+        }
+        if (!stock_bloquant) {
+            return res.status(400).json({ Status: false, message: 'Veuillez préciser si le stock est bloquant !' });
+        }
+        if (!puisable_en_portion) {
+            return res.status(400).json({ Status: false, message: 'Veuillez préciser si le produit est puisable en portion !' });
+        }
+        if (puisable_en_portion === "Oui" && !contenance) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir la contenance en portion !' });
+        }
+        if (!userid) {
+            return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
+        }
+        
+        // Vérification de l'existence du produit
+        const produit = await Produit.findByPk(id);
+        if (!produit) {
+            return res.status(404).json({ Status: false, message: "Produit non trouvé !" });
+        }
+
+        // Mise à jour du produit
+        produit.designation = designation;
+        produit.unite = unite;
+        produit.seuil = seuil;
+        produit.stock_bloquant = stock_bloquant;
+        produit.puisable_en_portion = puisable_en_portion;
+        produit.contenance = contenance;
+        produit.userid = userid;
+
+        // Mise à jour de l'image si un nouveau fichier est envoyé
+        if (req.file) {
+            produit.image = req.file.filename;
+        }
+
+        await produit.save();
+
+        res.status(200).json({ Status: true, message: 'Produit modifié avec succès !', Result: produit });
+    } catch (err) {
+        console.error("Erreur serveur :", err);
+        res.status(500).json({ Status: false, Error: `Erreur serveur : ${err.message}` });
+    }
+});
+
+
 // Route pour récupérer la liste des produits
 router.get('/liste', async (req, res) => {
     const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
@@ -87,14 +155,15 @@ router.get('/liste', async (req, res) => {
             SELECT 
                 p.id AS id,
                 p.designation AS designation, 
-                p.contenu AS contenu, 
-                p.prix AS prix, 
-                c.libelle AS libelle,
-                u.libelle AS ulibelle
+                p.seuil AS seuil, 
+                p.stock_franc AS stock_franc, 
+                p.stock_bloquant AS stock_bloquant, 
+                p.puisable_en_portion AS puisable_en_portion, 
+                p.contenance AS contenance, 
+                p.stock AS stock, 
+                p.unite AS unite
                 FROM produits AS p
-                INNER JOIN categories AS c ON p.categorie_id = c.id
-                INNER JOIN unite_mesure AS u ON p.unite_id = u.id
-                ORDER BY p.id DESC
+                ORDER BY p.designation ASC
             `);
 
         // Assurez-vous que results est un tableau
@@ -171,38 +240,81 @@ router.get('/detail/:id', async (req, res) => {
     }
 });
 
-
-router.put('/update/:id', async (req, res) => {
+// Route pour récupérer les mouvements
+router.get('/mouvement/:id', async (req, res) => {
     const { id } = req.params;
-    let { status } = req.body;
+
     try {
-        if (!status) {
-            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner le statut de traitement !' });
+        if (!id) {
+            return res.status(400).json({ success: false, message: "ID d'approvisionnement requis" });
         }
-        
-        const [updatedRows] = await Produit.update(
-          {
-            status: status,
-          },
-          {
-            where: {
-              id: id,
-            },
-          }
-        );
 
-          res.status(200).json({
+        const lignes = await Mouvementstock.findAll({
+            where: { produit_id : id, type_produit: 'PS' },
+        });
+
+        /*if (!lignes.length) {
+            return res.status(404).json({ success: false, message: "Aucune ligne trouvée pour cet approvisionnement" });
+        }*/
+
+        // Formatage de la réponse
+        const result = lignes.map(ligne => ({
+            id: ligne.id,
+            produit_id: ligne.produit_id,
+            quantite: ligne.quantite,
+            type_operation: ligne.type_operation,
+            date: ligne.date,
+        }));
+
+        console.log(lignes)
+
+        //res.status(200).json({ success: true, data: lignes });
+        res.status(200).json({
             Status: true,
-            message: `Tâche mise à jour avec succès !`,
+            Result: result,
+            message: 'lignes récupéré avec succès.',
         });
-      } catch (error) {
-        console.error("Erreur lors de la mise à jour :", err);
-            res.status(500).json({
-            Status: false,
-            Error: `Erreur lors de la mise à jour du statut : ${err.message}`,
-        });
-      }
-});
 
+    } catch (error) {
+        console.error("Erreur lors de la récupération des lignes :", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+//PAGE AFFICHANT LES PRODUITS AU SEUIL DE LEUR STOCK
+router.get('/produits-seuil', async (req, res) => {
+    try {
+      const Result = await Produit.findAll({
+        where: {
+          stock: {
+            [Op.lte]: Sequelize.col('seuil')
+          },
+          stock_bloquant : 'Oui'
+        }
+      });
+  
+      res.status(200).json(Result);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération", error: error.message });
+    }
+  });
+//RECUPERATION DU NOMBRE TOTAL DE PRODUITS AU SEUIL DE STOCK
+// routes/produit.js
+router.get('/produits-seuil-count', async (req, res) => {
+    try {
+      const count = await Produit.count({
+        where: {
+          stock: {
+            [Op.lte]: Sequelize.col('seuil')
+          },
+          stock_bloquant : 'Oui'
+        }
+      });
+      res.status(200).json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors du comptage", error: error.message });
+    }
+  });
+  
+  
 
 export { router as produitRouter }

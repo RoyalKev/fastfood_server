@@ -2,54 +2,54 @@
 import express from 'express';
 import multer from 'multer';
 const upload = multer();
-import { Categorie, Produit, User } from '../../models/index.js';
-import { getCategorieLib } from '../../services/categorieService.js';
+import {Table } from '../../models/index.js';
 
 const router = express.Router();
 
 router.post('/nouveau', upload.none(), async (req, res) => {
-    const { libelle, userid } = req.body;
+    const { reference, emplacement, userid } = req.body;
     console.log(req.body)
     try {
-        if (!libelle) {
-            return res.status(400).json({ Status: false, message: 'Veuillez saisir le libelle de la catégorie !' });
+        if (!reference) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir la référence de la table !' });
+        }
+        if (!emplacement) {
+            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner l\'emplacement de la table !' });
         }
 
-        const existingCategorie = await getCategorieLib(libelle);
-        if (existingCategorie) {
-            return res.status(400).json({ Status: false, message: "Cette catégorie existe déjà !" });
+        const existingTable = await Table.findOne({ where: { reference : reference, emplacement : emplacement } });
+        if (existingTable) {
+            return res.status(400).json({ Status: false, message: "Cette table a déjà été enregistrée !" });
         }
-
         if (!userid) {
             return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
         }
 
-
-        const cat = await Categorie.create({
-            libelle : libelle,
+        const table = await Table.create({
+            reference : reference,
+            emplacement : emplacement,
             userid,
         });
-
-        res.status(201).json({ Status: true, message: 'Catégorie créée avec succès !', Result: cat });
+        res.status(201).json({ Status: true, message: 'Table créée avec succès !', Result: table });
     } catch (err) {
         console.error("Erreur serveur :", err);
         res.status(500).json({ Status: false, Error: `Erreur serveur : ${err.message}` });
     }
 });
 
-// Route pour récupérer la liste des categorie
+// Route pour récupérer la liste des tables
 router.get('/liste', async (req, res) => {
     const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
     const offset = (page - 1) * limit; // Calcul de l'offset
     try {
-        const { rows: categories, count: totalItems } = await Categorie.findAndCountAll({
-            order: [['libelle', 'ASC']],
+        const { rows: tables, count: totalItems } = await Table.findAndCountAll({
+            order: [['reference', 'ASC']],
             offset: parseInt(offset, 10),
             limit: parseInt(limit, 10),
         });
         res.status(200).json({
             Status: true,
-            Result: categories,
+            Result: tables,
             Pagination: {
                 totalItems,
                 totalPages: Math.ceil(totalItems / limit),
@@ -57,63 +57,63 @@ router.get('/liste', async (req, res) => {
             },
         });
     } catch (err) {
-        console.error("Erreur lors de la récupération des categories :", err);
+        console.error("Erreur lors de la récupération des tables :", err);
         res.status(500).json({
             Status: false,
-            Error: `Erreur lors de la récupération des categories : ${err.message}`,
+            Error: `Erreur lors de la récupération des tables : ${err.message}`,
         });
     }
 });
-//LISTE COMPLETE DES CATEGORIES
+//LISTE COMPLETE DES TABLES
 router.get('/liste2', async (req, res) => {
     
     try {
-        const { rows: categories, count: totalItems } = await Categorie.findAndCountAll({
-            order: [['libelle', 'ASC']],
+        const { rows: tables, count: totalItems } = await Table.findAndCountAll({
+            order: [['reference', 'ASC']],
         });
         res.status(200).json({
             Status: true,
-            Result: categories,
+            Result: tables,
         });
     } catch (err) {
-        console.error("Erreur lors de la récupération des categories :", err);
+        console.error("Erreur lors de la récupération des tables :", err);
         res.status(500).json({
             Status: false,
-            Error: `Erreur lors de la récupération des categories : ${err.message}`,
+            Error: `Erreur lors de la récupération des tables : ${err.message}`,
         });
     }
 });
-// Route pour supprimer un categorie
+// Route pour supprimer une table
 router.delete('/supprimer/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        // Vérifier si le categorie existe
-        const categorie = await Categorie.findByPk(id);
-        if (!categorie) {
+        // Vérifier si la table existe
+        const table = await Table.findByPk(id);
+        if (!table) {
             return res.status(404).json({
                 Status: false,
-                message: 'categorie non trouvée.',
+                message: 'Table non trouvée.',
             });
         }
 
-        // Supprimer categorie
-        await categorie.destroy();
+        // Supprimer table
+        await table.destroy();
 
         res.status(200).json({
             Status: true,
-            message: 'categorie supprimée avec succès.',
+            message: 'Table supprimée avec succès.',
         });
     } catch (err) {
-        console.error("Erreur lors de la suppression de la categorie :", err);
+        console.error("Erreur lors de la suppression de la table :", err);
         res.status(500).json({
             Status: false,
-            Error: `Erreur lors de la suppression de la categorie : ${err.message}`,
+            Error: `Erreur lors de la suppression de la table : ${err.message}`,
         });
     }
 });
 
 // Route pour récupérer les produits d'une categorie donnée
-router.get('/produitcat/:id', async (req, res) => {
+/*router.get('/produitcat/:id', async (req, res) => {
     const { id } = req.params;
     const { offset = 0, limit = 10, page = 1 } = req.query;
 
@@ -122,7 +122,7 @@ router.get('/produitcat/:id', async (req, res) => {
 
         if (id == 0) {
             ({ rows: produits, count: totalItems } = await Produit.findAndCountAll({
-                order: [['libelle', 'ASC']],
+                order: [['reference', 'ASC']],
                 offset: parseInt(offset, 10),
                 limit: parseInt(limit, 10),
             }));
@@ -157,5 +157,6 @@ router.get('/produitcat/:id', async (req, res) => {
         });
     }
 });
+*/
 
-export { router as categorieRouter }
+export { router as tableRouter }

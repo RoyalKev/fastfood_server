@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/database.js';
 
-export const Produit = sequelize.define('Produit', {
+export const Produit = sequelize.define('Produit', { // MODELE POUR STOCKER LES PRODUITS SOURCES 
   designation : { type: DataTypes.STRING, allowNull: false, 
     validate: { 
       notEmpty: {
@@ -9,33 +9,14 @@ export const Produit = sequelize.define('Produit', {
       },
     }, 
   },
-  prix : { type: DataTypes.DECIMAL, allowNull: true, defaultValue:0,},
-  categorie_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false, // Champ obligatoire
-    validate: {
-      isInt: {
-        msg: 'L\'ID de la catégorie doit être un entier valide.',
-      },
-    },
+  unite : { type: DataTypes.STRING, allowNull: true, //Franc, Bouteille, Unité, //
   },
-  unite_id : { type: DataTypes.INTEGER, allowNull: false, //Bouteille, unité, verre, 
-    validate: { 
-      notEmpty: {
-        msg: 'Lunité du produit est requis.',
-      },
-    }, 
-  },
-  contenu : { type: DataTypes.DECIMAL, allowNull: false, 
-    validate: { 
-      notEmpty: {
-        msg: 'Le contenu est requis.',
-      },
-    }, 
-  },
+  puisable_en_portion : { type: DataTypes.STRING, allowNull: true, defaultValue:'Non',},
+  contenance : { type: DataTypes.DOUBLE, allowNull: true, defaultValue:1,},
   stock : { type: DataTypes.DOUBLE, allowNull: true, defaultValue:0,},
+  stock_franc : { type: DataTypes.DOUBLE, allowNull: true, defaultValue:0,},
+  stock_bloquant : { type: DataTypes.STRING, allowNull: true, defaultValue:'Non',},
   seuil : { type: DataTypes.DECIMAL, allowNull: true, defaultValue:0,},
-  image : { type: DataTypes.STRING, allowNull: true,},
    userid: {
     type: DataTypes.INTEGER,
     allowNull: false, // Champ obligatoire

@@ -28,20 +28,10 @@ export const Mouvementstock = sequelize.define('Mouvementstock', {
         },
     },
     avant: {
-        type: DataTypes.DECIMAL, allowNull: false,
-        validate: {
-            notEmpty: {
-                msg: 'Avant est requis.',
-            },
-        },
+        type: DataTypes.DECIMAL, allowNull: true,
     },
     apres: {
-        type: DataTypes.DECIMAL, allowNull: false,
-        validate: {
-            notEmpty: {
-                msg: 'Apres est requis.',
-            },
-        },
+        type: DataTypes.DECIMAL, allowNull: true,
     },
     type_operation: {
         type: DataTypes.STRING, allowNull: false,
@@ -50,6 +40,9 @@ export const Mouvementstock = sequelize.define('Mouvementstock', {
                 msg: 'Type operation est requis.',
             },
         },
+    },
+    type_produit: {
+        type: DataTypes.STRING, allowNull: true,
     },
     userid: {
         type: DataTypes.INTEGER,

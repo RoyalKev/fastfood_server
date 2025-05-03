@@ -1,9 +1,9 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/database.js';
 import Uniteconversion from './uniteconversion.js';
-import Vente from './vente.js';
+import Approboisson from './approboisson.js';
 
-export const Lignevente = sequelize.define('Lignevente', {
+export const Ligneapproboisson = sequelize.define('Ligneapproboisson', {
     produit_id: {
         type: DataTypes.INTEGER,
         allowNull: false, // Champ obligatoire
@@ -13,25 +13,16 @@ export const Lignevente = sequelize.define('Lignevente', {
             },
         },
     },
-    designation: {
-        type: DataTypes.STRING,
-        allowNull: true, // Champ obligatoire
-    },
     categorie_id: {
         type: DataTypes.INTEGER,
-        allowNull: false, // Champ obligatoire
-        validate: {
-            isInt: {
-                msg: 'L\'ID de la categorie doit être un entier valide.',
-            },
-        },
+        allowNull: true, // Champ obligatoire
     },
-    vente_id: {
+    appro_id: {
         type: DataTypes.INTEGER,
         allowNull: false, // Champ obligatoire
         validate: {
             isInt: {
-                msg: 'L\'ID de la vente doit être un entier valide.',
+                msg: 'L\'ID de lappro doit être un entier valide.',
             },
         },
     },
@@ -63,7 +54,7 @@ export const Lignevente = sequelize.define('Lignevente', {
             },
         },
     },
-    qteligne: {
+    qteligne: {// ici cest la quantite totale ki va rentrer en stock
         type: DataTypes.DOUBLE, allowNull: false,
         validate: {
             notEmpty: {
@@ -73,8 +64,8 @@ export const Lignevente = sequelize.define('Lignevente', {
     },
     statut: {
         type: DataTypes.STRING,
-        allowNull: true,
-        defaultValue: 'En cours',
+        allowNull: true, // Champ obligatoire
+        defaultValue: 'Validé',
     },
     userid: {
         type: DataTypes.INTEGER,
@@ -85,13 +76,13 @@ export const Lignevente = sequelize.define('Lignevente', {
             },
         },
     },
-}, { tableName: 'ligne_vente' });
+}, { tableName: 'ligneapproboissons' });
 
-Lignevente.belongsTo(Uniteconversion, { foreignKey: 'produit_id', as: 'produit' }); // Une ligne appartient à un produit
-Uniteconversion.hasMany(Lignevente, { foreignKey: 'produit_id' }); // Un produit peut être dans plusieurs lignes de vente
+Ligneapproboisson.belongsTo(Uniteconversion, { foreignKey: 'produit_id' }); // Une ligne appartient à un produit
+Uniteconversion.hasMany(Ligneapproboisson, { foreignKey: 'produit_id' }); // Un produit peut être dans plusieurs lignes d'appro
 
-Lignevente.belongsTo(Vente, { foreignKey: 'vente_id', as: 'vente' }); // Une ligne appartient à une vente donnée
-Vente.hasMany(Lignevente, { foreignKey: 'vente_id', as: 'lignevente' }); // Un appro peut être dans plusieurs lignes de vente
+Ligneapproboisson.belongsTo(Approboisson, { foreignKey: 'appro_id' }); // Une ligne appartient à un appro donné
+Approboisson.hasMany(Ligneapproboisson, { foreignKey: 'appro_id' }); // Un appro peut être dans plusieurs lignes d'appro
 
-export default Lignevente;
+export default Ligneapproboisson;
 

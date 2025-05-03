@@ -14,7 +14,7 @@ import sequelize from '../config/database.js';
 import express from 'express';
 import { register, logout, login } from '../controllers/authController.js';
 import { validateUser, validateUserLogin } from '../middlewares/validation.js';
-import { getUserByEmail, getUserByNom } from '../services/userServices.js';
+import { getUserByAppro, getUserByApprob, getUserByCat, getUserByComp, getUserByEmail, getUserByInv, getUserByInvb, getUserByNom, getUserByPro, getUserByUnitec, getUserByVente } from '../services/userServices.js';
 import User from '../models/user.js';
 import { Sequelize } from "sequelize";
 
@@ -25,7 +25,7 @@ router.post('/login', validateUserLogin, login);
 router.post('/logout', logout);
 
 router.post('/nouveau', upload.none(), async (req, res) => {
-    const { nom, email, password, direction_id, role, userid } = req.body;
+    const { nom, email, password, role, userid } = req.body;
     console.log(req.body)
     try {
         if (!nom) {
@@ -35,10 +35,6 @@ router.post('/nouveau', upload.none(), async (req, res) => {
             return res.status(400).json({ Status: false, message: 'Veuillez saisir l\'adresse email de l\'utilisateur !' });
         }
 
-        if (!direction_id) {
-            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner la direction !' });
-        }
-
         if (!role) {
             return res.status(400).json({ Status: false, message: 'Veuillez sélectionner le role !' });
         }
@@ -46,11 +42,6 @@ router.post('/nouveau', upload.none(), async (req, res) => {
         const existingE = await getUserByEmail(email);
         if (existingE) {
             return res.status(400).json({ Status: false, message: "Cette adresse email existe déjà !" });
-        }
-
-        const existingUser = await getUserByNom(nom, direction_id);
-        if (existingUser) {
-            return res.status(400).json({ Status: false, message: "Cet utilisateur a déjà été enregistré !" });
         }
 
         if (!userid) {
@@ -65,7 +56,7 @@ router.post('/nouveau', upload.none(), async (req, res) => {
         const user = await User.create({
                     nom: nom,
                     email: email,
-                    direction_id : direction_id,
+                    direction_id : 0,
                     role : role,
                     password : hash,
                     userid,
@@ -89,9 +80,8 @@ router.get('/liste', async (req, res) => {
                 u.id AS id,
                 u.nom, 
                 u.email, 
-                d.nom_direction AS nom_direction
+                u.role 
                 FROM users AS u
-                INNER JOIN directions AS d ON u.direction_id = d.id
                 ORDER BY u.id DESC
             `);
 
@@ -124,6 +114,38 @@ router.delete('/supprimer/:id', async (req, res) => {
                 message: 'Utilisateur non trouvé.',
             });
         }
+
+        //getUserByVente
+        const existingVente = await getUserByVente(id);
+        if (existingVente) {
+            return res.status(404).json({ Status: false, message: "Suppression impossible ! Cet utilisateur est lié à certaines données" });
+        }
+        /*const existingAppro = await getUserByAppro(id);
+        if (existingAppro) {
+            return res.status(400).json({ Status: false, message: "Suppression impossible ! Cet utilisateur est lié à certaines données" });
+        }
+        const existingApprob = await getUserByApprob(id);
+        if (existingApprob) {
+            return res.status(400).json({ Status: false, message: "Suppression impossible ! Cet utilisateur est lié à certaines données" });
+        }
+        const existingCat = await getUserByCat(id);
+        if (existingCat) {
+            return res.status(400).json({ Status: false, message: "Suppression impossible ! Cet utilisateur est lié à certaines données" });
+        }
+        const existingComp = await getUserByComp(id);
+        if (existingComp) {
+            return res.status(400).json({ Status: false, message: "Suppression impossible ! Cet utilisateur est lié à certaines données" });
+        }*/
+
+            /*const checks = [getUserByVente, getUserByAppro, getUserByApprob, getUserByCat, getUserByComp, getUserByInv, getUserByInvb, getUserByUnitec, getUserByPro];
+            for (const check of checks) {
+            if (await check(id)) {
+                return res.status(404).json({ 
+                Status: false, 
+                message: "Suppression impossible ! Cet utilisateur est lié à certaines données" 
+                });
+            }
+            }*/
 
         // Supprimer utilisateur
         await utilisateur.destroy();
