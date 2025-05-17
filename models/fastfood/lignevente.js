@@ -63,6 +63,7 @@ export const Lignevente = sequelize.define('Lignevente', {
             },
         },
     },
+    benef: { type: DataTypes.DOUBLE, allowNull: true, defaultValue:0},
     qteligne: {
         type: DataTypes.DOUBLE, allowNull: false,
         validate: {

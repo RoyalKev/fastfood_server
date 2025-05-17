@@ -38,6 +38,7 @@ export const Uniteconversion = sequelize.define('Uniteconversion', {
       },
     }, 
   },
+  prix_revient : { type: DataTypes.DECIMAL, allowNull: true, defaultValue:0,},
   image : { type: DataTypes.STRING, allowNull: true,},
   stock : { type: DataTypes.DOUBLE, allowNull: true, defaultValue:0,},
   userid: {

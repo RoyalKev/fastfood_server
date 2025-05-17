@@ -170,6 +170,7 @@ router.post('/nouveau', upload.none(), async (req, res) => {
           unite: item.unite,
           montligne: item.montligne,
           qteligne: item.quantite,
+          benef: (article.prix - article.prix_revient) * item.quantite,
           statut: vente.statut,
           userid: item.userid,
         },
@@ -959,7 +960,7 @@ router.get('/vente_validee/:userid', async (req, res) => {
 
     const totalvente = parseFloat(result.total) || 0;
 
-    res.json({ventes, totalvente, totalPages: Math.ceil(count / limit), currentPage: page,});
+    res.json({ventes, totalvente, totalPages: Math.ceil(count / limit), currentPage: page,}); 
   } catch (error) {
     console.error("Erreur lors de la récupération des ventes :", error);
     res.status(500).json({ message: "Erreur serveur" });

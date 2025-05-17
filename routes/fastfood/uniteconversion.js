@@ -36,7 +36,7 @@ const storage = multer.diskStorage({
   });
 
 router.post('/nouveau', upload.single('image'), async (req, res) => {
-    let { categorie_id, categorie, bouteilleMereid, designation, prix, unite, contenance, userid } = req.body;
+    let { categorie_id, categorie, bouteilleMereid, designation, prix, prix_revient, unite, contenance, userid } = req.body;
     try {
         if (!categorie) {
             return res.status(400).json({ Status: false, message: 'Veuillez sélectionner le type  !' });
@@ -83,6 +83,7 @@ router.post('/nouveau', upload.single('image'), async (req, res) => {
             designation : designation,
             bouteilleMereId : bouteilleMereid,
             prix : prix,
+            prix_revient : prix_revient,
             unite : unite,
             contenance : contenance,
             image: req.file.filename,
@@ -108,6 +109,7 @@ router.get('/liste', async (req, res) => {
                 p.designation AS designation, 
                 p.unite AS unite, 
                 p.prix AS prix, 
+                p.prix_revient AS prix_revient, 
                 p.type AS type,
                 p.stock AS stock,
                 p.categorie_id AS categorie_id,
@@ -155,6 +157,7 @@ router.get('/liste2', async (req, res) => {
                 p.designation AS designation, 
                 p.unite AS unite, 
                 p.prix AS prix, 
+                p.prix_revient AS prix_revient, 
                 p.type AS type,
                 p.categorie_id AS categorie_id,
                 c.libelle AS libelle
