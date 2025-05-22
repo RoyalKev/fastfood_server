@@ -46,8 +46,8 @@ router.post('/nouveau', upload.none(), async (req, res) => {
     }
   });
 
-  router.get('/lignes', async (req, res) => {
-      const { id } = req.query;
+  router.get('/lignes/:id', async (req, res) => {
+      const { id } = req.params;
       console.log(id)
   
       try {
@@ -64,9 +64,14 @@ router.post('/nouveau', upload.none(), async (req, res) => {
                   }
               ]
           });
+          
           if (!lignes.length) {
-              return res.status(404).json({ success: false, message: "Aucune ligne trouvée pour cette compo" });
-          }
+                return res.status(200).json({
+                    Status: true,
+                    Result: [],
+                    message: "Aucune ligne trouvée pour cette compo"
+                });
+            }
   
           // Formatage de la réponse
           const result = lignes.map(ligne => ({

@@ -214,6 +214,25 @@ router.get('/liste', async (req, res) => {
         });
     }
 });
+//LISTE COMPLETE
+
+router.get('/liste2', async (req, res) => {
+    try {
+        const { rows: produits, count: totalItems } = await Produit.findAndCountAll({
+            order: [['designation', 'ASC']],
+        });
+        res.status(200).json({
+            Status: true,
+            Result: produits,
+        });
+    } catch (err) {
+        console.error("Erreur lors de la récupération des produits :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la récupération des produits : ${err.message}`,
+        });
+    }
+});
 
 
 // Route pour supprimer une produit
