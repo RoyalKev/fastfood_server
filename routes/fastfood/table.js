@@ -37,6 +37,48 @@ router.post('/nouveau', upload.none(), async (req, res) => {
     }
 });
 
+router.put('/modifier/:id', upload.none(), async (req, res) => {
+    const { id } = req.params;
+    const { reference, emplacement, userid } = req.body;
+    try {
+        // Vérifier si le table existe
+        const table = await Table.findByPk(id);
+        if (!table) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Table non trouvée.',
+            });
+        }
+        if (!reference) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir la référence de la table !' });
+        }
+        if (!emplacement) {
+            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner l\'emplacement de la table !' });
+        }
+        if (!userid) {
+            return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
+        }
+
+        table.emplacement = emplacement;
+        table.reference = reference;
+        table.userid = userid;
+
+        await table.save();
+
+        res.status(200).json({
+            Status: true,
+            message: 'Table modifiée avec succès.',
+            Result: table
+        });
+    } catch (err) {
+        console.error("Erreur lors de la modification de la table :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la modification de la table : ${err.message}`,
+        });
+    }
+});
+
 // Route pour récupérer la liste des tables
 router.get('/liste', async (req, res) => {
     const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
@@ -108,6 +150,34 @@ router.delete('/supprimer/:id', async (req, res) => {
         res.status(500).json({
             Status: false,
             Error: `Erreur lors de la suppression de la table : ${err.message}`,
+        });
+    }
+});
+
+// Route pour récupérer une table donnée
+router.get('/detail/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const table = await Table.findByPk(id);
+        if (!table) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Table non trouvée.',
+            });
+        }
+
+        const table_detail = await Table.findByPk(id);
+
+        res.status(200).json({
+            Status: true,
+            Result: table_detail,
+            message: 'Table récupérée avec succès.',
+        });
+    } catch (err) {
+        console.error("Erreur lors de la récupération de la table :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la récupération de le table : ${err.message}`,
         });
     }
 });

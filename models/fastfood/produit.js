@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/database.js';
+import Unitemesure from './unitemesure.js';
 
 export const Produit = sequelize.define('Produit', { // MODELE POUR STOCKER LES PRODUITS SOURCES 
   designation : { type: DataTypes.STRING, allowNull: false, 
@@ -17,7 +18,7 @@ export const Produit = sequelize.define('Produit', { // MODELE POUR STOCKER LES 
   stock_franc : { type: DataTypes.DOUBLE, allowNull: true, defaultValue:0,},
   stock_bloquant : { type: DataTypes.STRING, allowNull: true, defaultValue:'Non',},
   seuil : { type: DataTypes.DECIMAL, allowNull: true, defaultValue:0,},
-   userid: {
+  userid: {
     type: DataTypes.INTEGER,
     allowNull: false, // Champ obligatoire
     validate: {

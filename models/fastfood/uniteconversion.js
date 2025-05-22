@@ -1,5 +1,6 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../../config/database.js';
+import Categorie from './categorie.js';
 
 export const Uniteconversion = sequelize.define('Uniteconversion', {
   designation : { type: DataTypes.STRING, allowNull: false, //Bouteille, unité, verre, 
@@ -51,6 +52,9 @@ export const Uniteconversion = sequelize.define('Uniteconversion', {
     },
   },
 }, {tableName: 'unite_conversion'});
+
+Uniteconversion.belongsTo(Categorie, { foreignKey: 'categorie_id' });
+Categorie.hasMany(Uniteconversion, { foreignKey: 'categorie_id' });
 
 export default Uniteconversion;
 

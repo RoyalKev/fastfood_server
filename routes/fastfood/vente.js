@@ -158,6 +158,7 @@ router.post('/nouveau', upload.none(), async (req, res) => {
 
       const cat = await getCategorieID(item.produit_id)
       const categorie_id = cat.categorie_id;
+      const benef = article.prix == 0 ? 0 : (article.prix - article.prix_revient) * item.quantite;
 
       await Lignevente.create(
         {
@@ -170,22 +171,12 @@ router.post('/nouveau', upload.none(), async (req, res) => {
           unite: item.unite,
           montligne: item.montligne,
           qteligne: item.quantite,
-          benef: (article.prix - article.prix_revient) * item.quantite,
+          benef: benef,
           statut: vente.statut,
           userid: item.userid,
         },
         { transaction: t }
       );
-      //await article.save({ transaction: t });
-
-      /*await Mouvementstock.create({
-        date: new Date(),
-        produit_id: item.produit_id,
-        quantite: item.quantite,
-        type_operation: 'Vente',
-        type_produit: 'Boisson',
-        userid
-      }, { transaction: t });*/
 
     }
 
@@ -253,6 +244,8 @@ router.put('/modifier/:id', upload.none(), async (req, res) => {
       const cat = await getCategorieID(item.produit_id);
       const categorie_id = cat.categorie_id;
 
+      const benef = article.prix == 0 ? 0 : (article.prix - article.prix_revient) * item.quantite;
+
       await Lignevente.create(
         {
           categorie_id: categorie_id,
@@ -264,6 +257,7 @@ router.put('/modifier/:id', upload.none(), async (req, res) => {
           unite: item.unite,
           montligne: item.montligne,
           qteligne: item.quantite,
+          benef: benef,
           statut: vente.statut,
           userid: item.userid,
         },

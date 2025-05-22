@@ -37,6 +37,45 @@ router.post('/nouveau', upload.none(), async (req, res) => {
     }
 });
 
+router.put('/modifier/:id', upload.none(), async (req, res) => {
+    const { id } = req.params;
+    const { libelle, userid } = req.body;
+    try {
+        // Vérifier si le categorie existe
+        const categorie = await Categorie.findByPk(id);
+        if (!categorie) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Categorie non trouvée.',
+            });
+        }
+        if (!libelle) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir le libelle de la catégorie !' });
+        }
+        
+        if (!userid) {
+            return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
+        }
+
+        categorie.libelle = libelle;
+        categorie.userid = userid;
+
+        await categorie.save();
+
+        res.status(200).json({
+            Status: true,
+            message: 'Catégorie modifiée avec succès.',
+            Result: categorie
+        });
+    } catch (err) {
+        console.error("Erreur lors de la modification de la categorie :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la modification de la categorie : ${err.message}`,
+        });
+    }
+});
+
 // Route pour récupérer la liste des categorie
 router.get('/liste', async (req, res) => {
     const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
@@ -108,6 +147,34 @@ router.delete('/supprimer/:id', async (req, res) => {
         res.status(500).json({
             Status: false,
             Error: `Erreur lors de la suppression de la categorie : ${err.message}`,
+        });
+    }
+});
+
+// Route pour récupérer une categorie donnée
+router.get('/detail/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const categorie = await Categorie.findByPk(id);
+        if (!categorie) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Categorie non trouvée.',
+            });
+        }
+
+        const categorie_detail = await Categorie.findByPk(id);
+
+        res.status(200).json({
+            Status: true,
+            Result: categorie_detail,
+            message: 'Catégorie récupérée avec succès.',
+        });
+    } catch (err) {
+        console.error("Erreur lors de la récupération de la catégorie :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la récupération de le categorie : ${err.message}`,
         });
     }
 });

@@ -4,7 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { Mouvementstock, Produit, Uniteconversion } from '../../models/index.js';
+import { Categorie, Mouvementstock, Produit, Uniteconversion } from '../../models/index.js';
 import sequelize from '../../config/database.js';
 import { getProduit, getProduitByID, getProduitConversion } from '../../services/produitService.js';
 
@@ -94,6 +94,75 @@ router.post('/nouveau', upload.single('image'), async (req, res) => {
     } catch (err) {
         console.error("Erreur serveur :", err);
         res.status(500).json({ Status: false, Error: `Erreur serveur : ${err.message}` });
+    }
+});
+
+router.put('/modifier/:id', upload.none(), async (req, res) => {
+    const { id } = req.params;
+    let { categorie_id, categorie, bouteilleMereid, designation, prix, prix_revient, unite, contenance, userid } = req.body;
+        console.log(req.body)
+    try {
+        // Vérifier si le categorie existe
+        const produit = await Uniteconversion.findByPk(id);
+        if (!produit) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Produit non trouvé.',
+            });
+        }
+        if (!categorie) {
+            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner le type  !' });
+        }
+        if (!designation) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir la designation !' });
+        }
+        if (!categorie_id) {
+            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner la catégorie !' });
+        }
+        if (!prix) {
+            return res.status(400).json({ Status: false, message: 'Saisir le prix de vente !' });
+        }
+        if (!unite) {
+            return res.status(400).json({ Status: false, message: 'Veuillez sélectionner l\'unité !' });
+        }
+        if (unite == "Verre") {
+            if (!bouteilleMereid) {
+                return res.status(400).json({ Status: false, message: 'Veuillez sélectionner la boisson mère !' });
+            }
+        }
+        if (unite == "Bouteille") {
+            if (!contenance) {
+                return res.status(400).json({ Status: false, message: 'Veuillez saisir la contenance en verre!' });
+            }
+        }
+        
+        if (!userid) {
+            return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
+        }
+
+        produit.type = categorie;
+        produit.categorie_id = categorie_id;
+        produit.designation = designation;
+        produit.bouteilleMereId = bouteilleMereid;
+        produit.prix = prix;
+        produit.prix_revient = prix_revient;
+        produit.unite = unite;
+        produit.contenance = contenance;
+        produit.userid = userid;
+
+        await produit.save();
+
+        res.status(200).json({
+            Status: true,
+            message: 'Produit modifié avec succès.',
+            Result: produit
+        });
+    } catch (err) {
+        console.error("Erreur lors de la modification du produit :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la modification du produit : ${err.message}`,
+        });
     }
 });
 
@@ -224,7 +293,14 @@ router.get('/detail/:id', async (req, res) => {
             });
         }
 
-        const produit_detail = await Uniteconversion.findByPk(id);
+        const produit_detail = await Uniteconversion.findByPk(id, {
+                include: [
+                    {
+                    model: Categorie,
+                    attributes : ["libelle"],
+                    },
+                ]
+            });
 
         res.status(200).json({
             Status: true,

@@ -88,7 +88,7 @@ router.post('/nouveau', upload.single('image'), async (req, res) => {
 
 //MODIFICATION
 
-router.put('/modifier/:id', upload.single('image'), async (req, res) => {
+router.put('/modifier/:id', upload.none(), async (req, res) => {
     const { id } = req.params;
     const { designation, unite, seuil, stock_bloquant, puisable_en_portion, contenance, userid } = req.body;
     console.log(req.body)
@@ -132,9 +132,7 @@ router.put('/modifier/:id', upload.single('image'), async (req, res) => {
         produit.userid = userid;
 
         // Mise à jour de l'image si un nouveau fichier est envoyé
-        if (req.file) {
-            produit.image = req.file.filename;
-        }
+        
 
         await produit.save();
 
@@ -147,7 +145,7 @@ router.put('/modifier/:id', upload.single('image'), async (req, res) => {
 
 
 // Route pour récupérer la liste des produits
-router.get('/liste', async (req, res) => {
+/*router.get('/liste', async (req, res) => {
     const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
     const offset = (page - 1) * limit; // Calcul de l'offset
     try {
@@ -174,6 +172,39 @@ router.get('/liste', async (req, res) => {
         res.status(200).json({
             Status: true,
             Result: resultsArray,
+            Pagination: {
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+                currentPage: parseInt(page, 10),
+            },
+        });
+    } catch (err) {
+        console.error("Erreur lors de la récupération des produits :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la récupération des produits : ${err.message}`,
+        });
+    }
+});*/
+
+// Route pour récupérer la liste des categorie
+router.get('/liste', async (req, res) => {
+    const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
+    const offset = (page - 1) * limit; // Calcul de l'offset
+    try {
+        const { rows: produits, count: totalItems } = await Produit.findAndCountAll({
+            order: [['designation', 'ASC']],
+            offset: parseInt(offset, 10),
+            limit: parseInt(limit, 10),
+        });
+        res.status(200).json({
+            Status: true,
+            Result: produits,
+            Pagination: {
+                totalItems,
+                totalPages: Math.ceil(totalItems / limit),
+                currentPage: parseInt(page, 10),
+            },
         });
     } catch (err) {
         console.error("Erreur lors de la récupération des produits :", err);
@@ -183,6 +214,8 @@ router.get('/liste', async (req, res) => {
         });
     }
 });
+
+
 // Route pour supprimer une produit
 router.delete('/supprimer/:id', async (req, res) => {
     const { id } = req.params;
