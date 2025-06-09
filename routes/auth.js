@@ -69,6 +69,43 @@ router.post('/nouveau', upload.none(), async (req, res) => {
     }
 });
 
+router.put('/modifier/:id', upload.none(), async (req, res) => {
+    const { id } = req.params;
+    const { nom, email, role, userid } = req.body;
+
+    try {
+        // Vérifier si le categorie existe
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Utilisateur non trouvé.',
+            });
+        }
+        if (!nom) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir le nom du user!' });
+        }
+        user.nom = nom;
+        user.email = email;
+        user.role = role;
+        user.userid = userid;
+
+        await user.save();
+
+        res.status(200).json({
+            Status: true,
+            message: 'Utilisateur modifié avec succès.',
+            Result: user
+        });
+    } catch (err) {
+        console.error("Erreur lors de la modification du user :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la modification du user : ${err.message}`,
+        });
+    }
+});
+
 
 // Route pour récupérer la liste des utilisateur
 router.get('/liste', async (req, res) => {

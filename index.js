@@ -31,8 +31,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(cors({
-  //origin: 'http://localhost:3000', // Origine autorisée
-  origin: 'http://82.29.168.42:3002', // Origine autorisée
+  origin: 'http://localhost:3000', // Origine autorisée
+  //origin: 'http://82.29.168.42:3002', // Origine autorisée
   credentials: true, // Autoriser l'envoi des cookies
 }));
 

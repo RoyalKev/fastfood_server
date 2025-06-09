@@ -35,7 +35,7 @@ const storage = multer.diskStorage({
     },
   });
 
-router.post('/nouveau', upload.single('image'), async (req, res) => {
+router.post('/nouveau', upload.none(), async (req, res) => {
     let { categorie_id, categorie, bouteilleMereid, designation, prix, prix_revient, unite, contenance, userid } = req.body;
     try {
         if (!categorie) {
@@ -67,11 +67,7 @@ router.post('/nouveau', upload.single('image'), async (req, res) => {
         if (!userid) {
             return res.status(400).json({ Status: false, message: 'Utilisateur non spécifié !' });
         }
-        if (!req.file) {
-            return res.status(400).json({ Status: false, message: 'Veuillez définir l\'image du produit.' });
-        }
         
-
         const existingProduit = await getProduitConversion(categorie, designation, unite);
         if (existingProduit) {
             return res.status(400).json({ Status: false, message: "Ce produit existe déjà !" });
@@ -86,7 +82,7 @@ router.post('/nouveau', upload.single('image'), async (req, res) => {
             prix_revient : prix_revient,
             unite : unite,
             contenance : contenance,
-            image: req.file.filename,
+            image: null,
             userid,
         });
 
@@ -168,7 +164,7 @@ router.put('/modifier/:id', upload.none(), async (req, res) => {
 
 // Route pour récupérer la liste des produits
 router.get('/liste', async (req, res) => {
-    const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit
+    const { page = 1, limit = 10, search = "" } = req.query; // Récupérer les paramètres page et limit
     const offset = (page - 1) * limit; // Calcul de l'offset
     
     try {
@@ -185,19 +181,27 @@ router.get('/liste', async (req, res) => {
                 c.libelle AS libelle
                 FROM unite_conversion AS p
                 INNER JOIN categories AS c ON p.categorie_id = c.id
+                WHERE LOWER(p.designation) LIKE :search
                 ORDER BY p.designation ASC
                 LIMIT :limit OFFSET :offset
             `, {
-            replacements: { limit: parseInt(limit, 10), offset: parseInt(offset, 10) },
-            type: sequelize.QueryTypes.SELECT
-        });
+                replacements: {
+                    limit: parseInt(limit, 10),
+                    offset: parseInt(offset, 10),
+                    search: `%${search.toLowerCase()}%`
+                },
+                type: sequelize.QueryTypes.SELECT
+            });
 
         // Récupération du nombre total d'éléments
-        const [{ total }] = await sequelize.query(`
-            SELECT COUNT(*) AS total FROM unite_conversion
-        `, {
-            type: sequelize.QueryTypes.SELECT
-        });
+            const [{ total }] = await sequelize.query(`
+                SELECT COUNT(*) AS total 
+                FROM unite_conversion
+                WHERE LOWER(designation) LIKE :search
+            `, {
+                replacements: { search: `%${search.toLowerCase()}%` },
+                type: sequelize.QueryTypes.SELECT
+            });
 
         res.status(200).json({
             Status: true,

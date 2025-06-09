@@ -395,7 +395,7 @@ router.post('/valider/:id', async (req, res) => {
     vente.statut = "Validé";
     await vente.save({ transaction: t });
     await t.commit();
-    res.json({ message: "Vente validée avec succès" });
+    res.json({ message: "Vente validée avec succès", vente });
   } catch (error) {
     await t.rollback();
     res.status(500).json({ message: error.message });
@@ -918,7 +918,7 @@ router.get('/vente_validee/:userid', async (req, res) => {
     const offset = (page - 1) * limit;
 
     const { count, rows: ventes } = await Vente.findAndCountAll({
-      where: { statut:'Validé', userid: userid },
+      where: { userid: userid },
       include: [
         {
           model: Lignevente,
@@ -932,7 +932,7 @@ router.get('/vente_validee/:userid', async (req, res) => {
           required: false, // même si la table est null
         },
       ],
-      order: [["date", "DESC"]], // Trier par date décroissante
+      order: [["id", "DESC"]], // Trier par date décroissante
       limit,
       offset,
     });
