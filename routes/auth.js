@@ -107,6 +107,58 @@ router.put('/modifier/:id', upload.none(), async (req, res) => {
 });
 
 
+//MISE A JOUR DE MOT DE PASSE 
+
+router.put('/updatepassword/:userid', upload.none(), async (req, res) => {
+    const { userid } = req.params;
+    const id = userid;
+    const { password, confirmpassword } = req.body;
+
+    try {
+        // Vérifier si le user existe
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({
+                Status: false,
+                message: 'Utilisateur non trouvé.',
+            });
+        }
+        if (!password) {
+            return res.status(400).json({ Status: false, message: 'Veuillez saisir le nouveau mot de passe !' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ Status: false, message: 'Saisissez au moins 6 caractères!' });
+        }
+        if (!confirmpassword) {
+            return res.status(400).json({ Status: false, message: 'Veuillez confirmer le nouveau mot de passe !' });
+        }
+        if (password !== confirmpassword) {
+            return res.status(400).json({ Status: false, message: 'Les mots de passe ne sont pas conformes !' });
+        }
+
+        // Hash the password
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(password, salt);
+
+        user.password = hash;
+
+        await user.save();
+
+        res.status(200).json({
+            Status: true,
+            message: 'Mot de passe modifié avec succès.',
+            Result: user
+        });
+    } catch (err) {
+        console.error("Erreur lors de la modification du Mot de passe :", err);
+        res.status(500).json({
+            Status: false,
+            Error: `Erreur lors de la modification du Mot de passe : ${err.message}`,
+        });
+    }
+});
+
+
 // Route pour récupérer la liste des utilisateur
 router.get('/liste', async (req, res) => {
     const { page = 1, limit = 10 } = req.query; // Récupérer les paramètres page et limit

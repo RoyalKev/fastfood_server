@@ -473,6 +473,9 @@ router.post('/annuler/:id', async (req, res) => {
         type_produit: article.type,
         userid: vente.userid
       }, { transaction: t });
+
+      ligne.statut = "Annulée";
+      await ligne.save({ transaction: t });
     }
 
     // Mettre le statut de la vente à "Annulée"
