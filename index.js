@@ -76,7 +76,7 @@ sequelize
   .authenticate()
   .then(() => {
     console.log('Connexion à la base de données réussie.');
-    //return sequelize.sync({ alter: true }); // Synchronise les modèles (alter met à jour les tables sans perte de données)
+    return sequelize.sync({ alter: true }); // Synchronise les modèles (alter met à jour les tables sans perte de données)
   })
   .catch((error) => {
     console.error('Impossible de se connecter à la base de données:', error);
@@ -85,4 +85,4 @@ sequelize
   app.listen(port, () => {
     console.log(`Example app listening on port: http://localhost:${port}`);
     //swaggerDocs(app, port);
-  })
+  }) 

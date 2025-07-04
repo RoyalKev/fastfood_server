@@ -13,7 +13,7 @@ const router = express.Router();
 router.post('/nouveau', upload.none(), async (req, res) => {
   const t = await sequelize.transaction(); // Démarre une transaction
   try {
-    const { venteData, montantlivraison, reduction, userid, venteType, selectedTable } = req.body;
+    const { venteData, montantlivraison, reduction, nomclient, userid, venteType, selectedTable } = req.body;
     console.log(venteData)
 
     let erreurs = [];
@@ -49,6 +49,7 @@ router.post('/nouveau', upload.none(), async (req, res) => {
         montant: venteData.montant, // On mettra à jour après
         montantlivraison: montantlivraison,
         reduction: reduction,
+        nomclient: nomclient,
         userid : venteData.userid,
       },
       { transaction: t }
@@ -197,7 +198,7 @@ router.post('/nouveau', upload.none(), async (req, res) => {
 router.put('/modifier/:id', upload.none(), async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { venteData, montantlivraison, reduction, userid, venteType, selectedTable } = req.body;
+    const { venteData, montantlivraison, reduction, nomclient, userid, venteType, selectedTable } = req.body;
     const { id } = req.params;
 
     let erreurs = [];
@@ -226,6 +227,7 @@ router.put('/modifier/:id', upload.none(), async (req, res) => {
     vente.montant = venteData.montant;
     vente.montantlivraison = mt_livraison;
     vente.reduction = reduction;
+    vente.nomclient = nomclient;
     vente.statut = venteData.statut;
     vente.date = new Date();
     await vente.save({ transaction: t });

@@ -5,6 +5,7 @@ import User from '../user.js';
 
 export const Vente = sequelize.define('Vente', {
   type_vente : { type: DataTypes.STRING, allowNull: true,}, //Emporté, VIP, Simple, Table, Gozem,montantlivraison
+  nomclient : { type: DataTypes.STRING, allowNull: true},
   table_id : { type: DataTypes.INTEGER, allowNull: true,},
   numero : { type: DataTypes.STRING, allowNull: true,},
   date : { type: DataTypes.DATE, allowNull: false, 
